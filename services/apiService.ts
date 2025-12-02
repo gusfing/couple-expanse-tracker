@@ -6,7 +6,8 @@ const API_BASE_URL = '/api';
 // Using unique endpoint names to avoid file conflicts
 const ENDPOINTS = {
   EXPENSES: '/journal',
-  SETTINGS: '/preferences'
+  SETTINGS: '/preferences',
+  RESET: '/journal?reset=true'
 };
 
 const LS_KEYS = {
@@ -124,7 +125,7 @@ export const apiService = {
   },
 
   async resetExpenses(): Promise<void> {
-    const success = await tryFetch(`${API_BASE_URL}${ENDPOINTS.EXPENSES}?reset=true`, {
+    const success = await tryFetch(`${API_BASE_URL}${ENDPOINTS.RESET}`, {
       method: 'DELETE',
     });
 

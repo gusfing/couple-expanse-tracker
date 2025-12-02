@@ -1,5 +1,4 @@
-// This file is deprecated and should be deleted.
-// It has been replaced by api/preferences.ts to avoid naming conflicts.
-// Removing default export to prevent Vercel from building this as a route.
-
-export const deprecated = true;
+// Please delete this file.
+// It conflicts with api/settings.php if that file still exists.
+// The active API is located in api/preferences.ts
+export {};
