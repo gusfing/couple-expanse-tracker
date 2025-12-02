@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
+// Removed unused createRoot import
 import { Plus, Settings as SettingsIcon, Heart, Lightbulb, Loader2 } from 'lucide-react';
 import { BudgetSummary } from './components/BudgetSummary';
 import { Stats } from './components/Stats';
@@ -7,9 +7,9 @@ import { ExpenseList } from './components/ExpenseList';
 import { AddExpenseForm } from './components/AddExpenseForm';
 import { SettingsModal } from './components/SettingsModal';
 import { TipsModal } from './components/TipsModal';
-import { Expense, BudgetSettings, Category, Payer } from './types';
+import { Expense, BudgetSettings } from './types';
 import { DEFAULT_BUDGET, DEFAULT_CURRENCY } from './constants';
-import { getCurrentMonthName } from './utils/format';
+import { getCurrentMonthName, generateId } from './utils/format';
 import { apiService } from './services/apiService';
 
 const App: React.FC = () => {
@@ -34,15 +34,22 @@ const App: React.FC = () => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [fetchedSettings, fetchedExpenses] = await Promise.all([
+        // Use Promise.allSettled to ensure one failure doesn't block the other
+        const [settingsResult, expensesResult] = await Promise.allSettled([
           apiService.getSettings(),
           apiService.getExpenses()
         ]);
-        setSettings(fetchedSettings);
-        setExpenses(fetchedExpenses);
+
+        if (settingsResult.status === 'fulfilled' && settingsResult.value) {
+          setSettings(settingsResult.value);
+        }
+        
+        if (expensesResult.status === 'fulfilled' && expensesResult.value) {
+          setExpenses(expensesResult.value);
+        }
       } catch (error) {
         console.error("Failed to load data:", error);
-        setShowToast({ message: "Could not connect to database", visible: true });
+        setShowToast({ message: "Loaded offline mode", visible: true });
       } finally {
         setIsLoading(false);
       }
@@ -57,7 +64,7 @@ const App: React.FC = () => {
   const addExpense = async (expenseData: Omit<Expense, 'id' | 'timestamp'>) => {
     const newExpense: Expense = {
       ...expenseData,
-      id: crypto.randomUUID(),
+      id: generateId(), // Use safe generator
       timestamp: Date.now()
     };
 
@@ -73,9 +80,8 @@ const App: React.FC = () => {
       });
     } catch (error) {
       console.error(error);
-      setShowToast({ message: "Failed to save to database", visible: true });
-      // Rollback
-      setExpenses(prev => prev.filter(e => e.id !== newExpense.id));
+      setShowToast({ message: "Saved locally only", visible: true });
+      // We keep the optimistic update because apiService falls back to local storage automatically
     }
     
     setTimeout(() => setShowToast({ message: '', visible: false }), 3000);
@@ -96,8 +102,8 @@ const App: React.FC = () => {
       });
     } catch (error) {
       console.error(error);
-      setShowToast({ message: "Failed to update database", visible: true });
-      setExpenses(previousExpenses); // Rollback
+      setShowToast({ message: "Updated locally only", visible: true });
+      // Keep optimistic update as fallback handles persistence
     }
 
     setTimeout(() => setShowToast({ message: '', visible: false }), 3000);
@@ -111,8 +117,7 @@ const App: React.FC = () => {
       await apiService.deleteExpense(id);
     } catch (error) {
       console.error(error);
-      setShowToast({ message: "Failed to delete from database", visible: true });
-      setExpenses(previousExpenses); // Rollback
+      setShowToast({ message: "Deleted locally", visible: true });
     }
   };
 
@@ -122,7 +127,7 @@ const App: React.FC = () => {
       await apiService.saveSettings(newSettings);
     } catch (error) {
       console.error("Failed to save settings", error);
-      setShowToast({ message: "Failed to save settings", visible: true });
+      setShowToast({ message: "Settings saved locally", visible: true });
     }
   };
 
@@ -145,7 +150,7 @@ const App: React.FC = () => {
         setShowToast({ message: "Month reset complete", visible: true });
       } catch (error) {
         setExpenses(previousExpenses);
-        setShowToast({ message: "Failed to reset database", visible: true });
+        setShowToast({ message: "Failed to reset", visible: true });
       }
     }
   };

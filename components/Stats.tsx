@@ -12,10 +12,13 @@ interface StatsProps {
   settings: BudgetSettings;
 }
 
-export const Stats: React.FC<StatsProps> = ({ expenses, settings }) => {
+export const Stats: React.FC<StatsProps> = ({ expenses = [], settings }) => {
+  // Safety check: ensure expenses is an array
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+
   // 1. Calculate Payer Split
-  const meSpent = expenses.filter(e => e.payer === 'Me').reduce((sum, e) => sum + e.amount, 0);
-  const partnerSpent = expenses.filter(e => e.payer === 'Partner').reduce((sum, e) => sum + e.amount, 0);
+  const meSpent = safeExpenses.filter(e => e.payer === 'Me').reduce((sum, e) => sum + e.amount, 0);
+  const partnerSpent = safeExpenses.filter(e => e.payer === 'Partner').reduce((sum, e) => sum + e.amount, 0);
   const total = meSpent + partnerSpent;
   
   const mePercent = total === 0 ? 50 : (meSpent / total) * 100;
@@ -31,7 +34,7 @@ export const Stats: React.FC<StatsProps> = ({ expenses, settings }) => {
       const dateStr = d.toISOString().split('T')[0];
       const dayLabel = d.getDate() === today.getDate() ? 'Today' : new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(d);
 
-      const dayExpenses = expenses.filter(e => e.date === dateStr);
+      const dayExpenses = safeExpenses.filter(e => e.date === dateStr);
       const meVal = dayExpenses.filter(e => e.payer === 'Me').reduce((sum, e) => sum + e.amount, 0);
       const partnerVal = dayExpenses.filter(e => e.payer === 'Partner').reduce((sum, e) => sum + e.amount, 0);
 
@@ -48,7 +51,7 @@ export const Stats: React.FC<StatsProps> = ({ expenses, settings }) => {
   const hasWeeklyData = weeklyData.some(d => d.me > 0 || d.partner > 0);
 
   // 3. Calculate Category Breakdown
-  const categoryData = expenses.reduce((acc, curr) => {
+  const categoryData = safeExpenses.reduce((acc, curr) => {
     acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
     return acc;
   }, {} as Record<Category, number>);
