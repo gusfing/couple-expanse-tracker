@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { X, RefreshCw, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, RefreshCw, Save, Database, CheckCircle2, AlertCircle } from 'lucide-react';
 import { BudgetSettings } from '../types';
 import { Button } from './ui/Button';
+import { apiService } from '../services/apiService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -15,13 +16,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen, onClose, settings, onSave, onReset 
 }) => {
   const [formData, setFormData] = useState(settings);
+  const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'error'>('checking');
 
   // Sync state when modal opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       setFormData(settings);
+      checkDb();
     }
   }, [isOpen, settings]);
+
+  const checkDb = async () => {
+    setDbStatus('checking');
+    try {
+      // Simple check to see if we can fetch settings from the DB
+      await apiService.getSettings();
+      setDbStatus('connected');
+    } catch (e) {
+      setDbStatus('error');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -78,7 +92,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             />
           </div>
 
-          <div className="pt-4 space-y-3">
+          {/* Database Status Indicator */}
+          <div className="bg-slate-50 rounded-xl p-3 flex items-center justify-between border border-slate-100">
+             <div className="flex items-center gap-2">
+                <Database size={16} className="text-slate-400" />
+                <span className="text-xs font-medium text-slate-500">Database Status</span>
+             </div>
+             <div>
+                {dbStatus === 'checking' && <span className="text-xs text-slate-400">Checking...</span>}
+                {dbStatus === 'connected' && (
+                    <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+                        <CheckCircle2 size={12} /> Connected
+                    </span>
+                )}
+                {dbStatus === 'error' && (
+                    <span className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                        <AlertCircle size={12} /> Offline
+                    </span>
+                )}
+             </div>
+          </div>
+
+          <div className="pt-2 space-y-3">
              <Button 
                 variant="primary" 
                 fullWidth 
