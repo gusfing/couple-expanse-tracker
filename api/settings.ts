@@ -1,4 +1,3 @@
-// Please delete this file.
-// It conflicts with api/settings.php if that file still exists.
-// The active API is located in api/preferences.ts
-export {};
+// @ts-nocheck
+// DEPRECATED: This file is empty to avoid conflicts.
+// Please manually DELETE api/settings.php from your project.
