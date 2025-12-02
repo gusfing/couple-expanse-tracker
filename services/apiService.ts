@@ -3,7 +3,7 @@ import { DEFAULT_BUDGET, DEFAULT_CURRENCY } from '../constants';
 
 const API_BASE_URL = '/api'; 
 
-// Endpoints renamed to avoid conflict with legacy PHP files
+// Using unique endpoint names to avoid file conflicts
 const ENDPOINTS = {
   EXPENSES: '/journal',
   SETTINGS: '/preferences'
