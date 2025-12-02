@@ -1,5 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+// This file is deprecated and should be deleted.
+// It has been replaced by api/preferences.ts to avoid naming conflicts.
+// Removing default export to prevent Vercel from building this as a route.
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  return res.status(410).json({ error: 'This endpoint is deprecated. Use /api/preferences instead.' });
-}
+export const deprecated = true;
