@@ -1,7 +1,14 @@
 import { Expense, BudgetSettings } from '../types';
 import { DEFAULT_BUDGET, DEFAULT_CURRENCY } from '../constants';
 
-const API_BASE_URL = '/api'; // Vercel API routes live at /api relative to root
+const API_BASE_URL = '/api'; 
+
+// Endpoints renamed to avoid conflict with legacy PHP files
+const ENDPOINTS = {
+  EXPENSES: '/journal',
+  SETTINGS: '/preferences'
+};
+
 const LS_KEYS = {
   SETTINGS: 'budget_settings',
   EXPENSES: 'budget_expenses'
@@ -32,7 +39,7 @@ const tryFetch = async <T>(url: string, options?: RequestInit): Promise<T | null
 
 export const apiService = {
   async getSettings(): Promise<BudgetSettings> {
-    const data = await tryFetch<BudgetSettings>(`${API_BASE_URL}/settings`);
+    const data = await tryFetch<BudgetSettings>(`${API_BASE_URL}${ENDPOINTS.SETTINGS}`);
     
     if (data) return data;
 
@@ -52,7 +59,7 @@ export const apiService = {
 
   async saveSettings(settings: BudgetSettings): Promise<void> {
     // Try to save to server
-    const success = await tryFetch(`${API_BASE_URL}/settings`, {
+    await tryFetch(`${API_BASE_URL}${ENDPOINTS.SETTINGS}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings),
@@ -63,7 +70,7 @@ export const apiService = {
   },
 
   async getExpenses(): Promise<Expense[]> {
-    const data = await tryFetch<Expense[]>(`${API_BASE_URL}/expenses`);
+    const data = await tryFetch<Expense[]>(`${API_BASE_URL}${ENDPOINTS.EXPENSES}`);
     
     if (data) return data;
 
@@ -74,7 +81,7 @@ export const apiService = {
   },
 
   async addExpense(expense: Expense): Promise<void> {
-    const success = await tryFetch(`${API_BASE_URL}/expenses`, {
+    const success = await tryFetch(`${API_BASE_URL}${ENDPOINTS.EXPENSES}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(expense),
@@ -88,7 +95,7 @@ export const apiService = {
   },
 
   async updateExpense(expense: Expense): Promise<void> {
-    const success = await tryFetch(`${API_BASE_URL}/expenses`, {
+    const success = await tryFetch(`${API_BASE_URL}${ENDPOINTS.EXPENSES}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(expense),
@@ -105,7 +112,7 @@ export const apiService = {
   },
 
   async deleteExpense(id: string): Promise<void> {
-    const success = await tryFetch(`${API_BASE_URL}/expenses?id=${id}`, {
+    const success = await tryFetch(`${API_BASE_URL}${ENDPOINTS.EXPENSES}?id=${id}`, {
       method: 'DELETE',
     });
 
@@ -117,7 +124,7 @@ export const apiService = {
   },
 
   async resetExpenses(): Promise<void> {
-    const success = await tryFetch(`${API_BASE_URL}/expenses?reset=true`, {
+    const success = await tryFetch(`${API_BASE_URL}${ENDPOINTS.EXPENSES}?reset=true`, {
       method: 'DELETE',
     });
 
